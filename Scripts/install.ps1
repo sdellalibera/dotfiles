@@ -13,7 +13,7 @@ Write-Host "=== Win 11 Setup ===" -ForegroundColor Cyan
 # --------------------------------------------------
 # 1. Ensure winget is available
 # --------------------------------------------------
-Write-Host "`n[1/5] Checking for winget..." -ForegroundColor Yellow
+Write-Host "`n[1/8] Checking for winget..." -ForegroundColor Yellow
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     Write-Host "winget not found. Installing App Installer from the Microsoft Store..." -ForegroundColor Yellow
     try {
@@ -32,23 +32,78 @@ else {
 # --------------------------------------------------
 # 2. Install Fastfetch
 # --------------------------------------------------
-Write-Host "`n[2/5] Installing Fastfetch..." -ForegroundColor Yellow
+Write-Host "`n[2/8] Installing Fastfetch..." -ForegroundColor Yellow
 winget install --id Fastfetch-cli.Fastfetch --accept-source-agreements --accept-package-agreements -e
 Write-Host "Fastfetch installed." -ForegroundColor Green
 
 # --------------------------------------------------
 # 3. Install JetBrainsMono Nerd Font
 # --------------------------------------------------
-Write-Host "`n[3/5] Installing JetBrainsMono Nerd Font..." -ForegroundColor Yellow
+Write-Host "`n[3/8] Installing JetBrainsMono Nerd Font..." -ForegroundColor Yellow
 winget install --id DEVCOM.JetBrainsMonoNerdFont --accept-source-agreements --accept-package-agreements -e
 Write-Host "JetBrainsMono Nerd Font installed." -ForegroundColor Green
 
 # --------------------------------------------------
-# 4. Copy Powershell (Windows Terminal) settings
+# 4. Install developer tools
 # --------------------------------------------------
-Write-Host "`n[4/5] Configuring Windows Terminal..." -ForegroundColor Yellow
+Write-Host "`n[4/8] Installing developer tools..." -ForegroundColor Yellow
+
+# AZD CLI (Azure Developer CLI)
+if (Get-Command azd -ErrorAction SilentlyContinue) {
+    Write-Host "AZD CLI is already installed. Skipping." -ForegroundColor DarkGray
+}
+else {
+    Write-Host "Installing AZD CLI..." -ForegroundColor Yellow
+    winget install --id Microsoft.Azd --accept-source-agreements --accept-package-agreements -e
+    Write-Host "AZD CLI installed." -ForegroundColor Green
+}
+
+# Azure CLI
+if (Get-Command az -ErrorAction SilentlyContinue) {
+    Write-Host "Azure CLI is already installed. Skipping." -ForegroundColor DarkGray
+}
+else {
+    Write-Host "Installing Azure CLI..." -ForegroundColor Yellow
+    winget install --id Microsoft.AzureCLI --accept-source-agreements --accept-package-agreements -e
+    Write-Host "Azure CLI installed." -ForegroundColor Green
+}
+
+# .NET SDK (latest)
+if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+    Write-Host ".NET SDK is already installed. Skipping." -ForegroundColor DarkGray
+}
+else {
+    Write-Host "Installing .NET SDK (latest)..." -ForegroundColor Yellow
+    winget install --id Microsoft.DotNet.SDK.9 --accept-source-agreements --accept-package-agreements -e
+    Write-Host ".NET SDK installed." -ForegroundColor Green
+}
+
+# Node.js / npm (LTS)
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Write-Host "npm / Node.js is already installed. Skipping." -ForegroundColor DarkGray
+}
+else {
+    Write-Host "Installing Node.js LTS (includes npm)..." -ForegroundColor Yellow
+    winget install --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements -e
+    Write-Host "Node.js LTS installed." -ForegroundColor Green
+}
+
+# Visual Studio Code
+if (Get-Command code -ErrorAction SilentlyContinue) {
+    Write-Host "VS Code is already installed. Skipping." -ForegroundColor DarkGray
+}
+else {
+    Write-Host "Installing Visual Studio Code..." -ForegroundColor Yellow
+    winget install --id Microsoft.VisualStudioCode --accept-source-agreements --accept-package-agreements -e
+    Write-Host "Visual Studio Code installed." -ForegroundColor Green
+}
+
+# --------------------------------------------------
+# 5. Copy Windows Terminal settings
+# --------------------------------------------------
+Write-Host "`n[5/8] Configuring Windows Terminal..." -ForegroundColor Yellow
 $wtSettingsDir = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
-$repoSettings  = Join-Path $RepoRoot "Powershell\settings.json"
+$repoSettings  = Join-Path $RepoRoot "Terminal\settings.json"
 
 if (Test-Path $wtSettingsDir) {
     $dest = Join-Path $wtSettingsDir "settings.json"
@@ -78,9 +133,32 @@ else {
 }
 
 # --------------------------------------------------
-# 5a. Copy Fastfetch config
+# 6. Copy PowerShell profile
 # --------------------------------------------------
-Write-Host "`n[5/5] Copying configuration files..." -ForegroundColor Yellow
+Write-Host "`n[6/8] Configuring PowerShell profile..." -ForegroundColor Yellow
+$psProfileDir = Split-Path -Parent $PROFILE
+if (-not (Test-Path $psProfileDir)) {
+    New-Item -ItemType Directory -Path $psProfileDir -Force | Out-Null
+    Write-Host "Created $psProfileDir" -ForegroundColor DarkGray
+}
+
+$srcProfile  = Join-Path $RepoRoot "Powershell\Microsoft.PowerShell_profile.ps1"
+$destProfile = $PROFILE
+
+# Back up existing profile before overwriting
+if (Test-Path $destProfile) {
+    $backup = "$destProfile.backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    Copy-Item -Path $destProfile -Destination $backup -Force
+    Write-Host "Existing PowerShell profile backed up to $backup" -ForegroundColor DarkGray
+}
+
+Copy-Item -Path $srcProfile -Destination $destProfile -Force
+Write-Host "PowerShell profile copied to $destProfile" -ForegroundColor Green
+
+# --------------------------------------------------
+# 7a. Copy Fastfetch config
+# --------------------------------------------------
+Write-Host "`n[7/8] Copying configuration files..." -ForegroundColor Yellow
 
 $fastfetchDir = Join-Path $env:USERPROFILE ".config\fastfetch"
 if (-not (Test-Path $fastfetchDir)) {
@@ -93,7 +171,7 @@ Copy-Item -Path $srcFastfetch -Destination (Join-Path $fastfetchDir "config.json
 Write-Host "Fastfetch config copied to $fastfetchDir" -ForegroundColor Green
 
 # --------------------------------------------------
-# 5b. Copy VSCode settings
+# 7b. Copy VSCode settings
 # --------------------------------------------------
 $vscodeDir = "$env:APPDATA\Code\User"
 if (-not (Test-Path $vscodeDir)) {
@@ -115,7 +193,7 @@ Copy-Item -Path $srcVSCode -Destination $destVSCode -Force
 Write-Host "VSCode settings copied to $vscodeDir" -ForegroundColor Green
 
 # --------------------------------------------------
-# Done
+# 8. Done
 # --------------------------------------------------
-Write-Host "`n=== Setup complete! ===" -ForegroundColor Cyan
+Write-Host "`n[8/8] Setup complete!" -ForegroundColor Cyan
 Write-Host "Please restart your terminal to apply all changes." -ForegroundColor White
