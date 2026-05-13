@@ -76,7 +76,7 @@ if ! command -v aspire &>/dev/null; then
     echo "Installing Aspire CLI..."
     # Ensure dotnet is in PATH (just installed above)
     export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
-    curl -fsSL https://aka.ms/install-aspire-cli.sh | bash || echo "Aspire CLI install failed — install manually later with: curl -fsSL https://aka.ms/install-aspire-cli.sh | bash"
+    curl -sSL https://aspire.dev/install.sh | bash || echo "Aspire CLI install failed — install manually later with: curl -sSL https://aspire.dev/install.sh | bash"
 fi
 
 # ── GitHub Copilot CLI ─────────────────────────────────────────
@@ -103,27 +103,74 @@ if ! command -v code &>/dev/null; then
     sudo apt update && sudo apt install -y code
 fi
 
+# ── Microsoft packages repo (needed for Azure VPN, Intune, Identity Broker) ──
+# Reference: https://learn.microsoft.com/en-us/entra/identity/devices/sso-linux
+MSFT_UBUNTU_VER="$(lsb_release -rs)"
+MSFT_UBUNTU_CODENAME="$(lsb_release -cs)"
+
+# Import the legacy microsoft.asc key (used by Edge repo and older Ubuntu releases)
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /tmp/microsoft.gpg
+sudo install -o root -g root -m 644 /tmp/microsoft.gpg /usr/share/keyrings/
+rm -f /tmp/microsoft.gpg
+
+# Ubuntu 26.04+ PMC repos are signed with a newer key
+if dpkg --compare-versions "$MSFT_UBUNTU_VER" ge "26.04"; then
+    MS_GPG_KEYRING="/usr/share/keyrings/microsoft-2025.gpg"
+    curl -fsSL https://packages.microsoft.com/keys/microsoft-2025.asc | gpg --dearmor > /tmp/microsoft-2025.gpg
+    sudo install -o root -g root -m 644 /tmp/microsoft-2025.gpg /usr/share/keyrings/
+    rm -f /tmp/microsoft-2025.gpg
+else
+    MS_GPG_KEYRING="/usr/share/keyrings/microsoft.gpg"
+fi
+
+# Add the Microsoft prod repo for the current Ubuntu version
+MSFT_REPO_LINE="deb [arch=amd64 signed-by=${MS_GPG_KEYRING}] https://packages.microsoft.com/ubuntu/${MSFT_UBUNTU_VER}/prod ${MSFT_UBUNTU_CODENAME} main"
+if [ ! -f /etc/apt/sources.list.d/microsoft-prod.list ] || ! grep -qF "${MSFT_UBUNTU_VER}/prod ${MSFT_UBUNTU_CODENAME}" /etc/apt/sources.list.d/microsoft-prod.list; then
+    echo "Configuring Microsoft packages repository (Ubuntu ${MSFT_UBUNTU_VER})..."
+    echo "$MSFT_REPO_LINE" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+    sudo apt update
+fi
+
 # ── Azure VPN Client ──────────────────────────────────────────
+# Reference: https://learn.microsoft.com/en-us/azure/vpn-gateway/point-to-site-entra-vpn-client-linux
+# Azure VPN Client only supports Ubuntu 20.04 and 22.04; use 22.04 repo as fallback.
 if ! command -v microsoft-azurevpnclient &>/dev/null; then
     echo "Installing Azure VPN Client..."
-    # Add Microsoft prod repo for Ubuntu
-    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft-prod.gpg > /dev/null
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | \
-        sudo tee /etc/apt/sources.list.d/microsoft-prod.list
-    sudo apt update
-    sudo apt install -y microsoft-azurevpnclient || echo "Azure VPN Client install failed — download .deb from https://aka.ms/azurevpnclientlinuxdownload"
+    AZURE_VPN_REPO="deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main"
+    if ! grep -qsF "ubuntu/22.04/prod jammy" /etc/apt/sources.list.d/microsoft-azurevpn.list 2>/dev/null; then
+        echo "$AZURE_VPN_REPO" | sudo tee /etc/apt/sources.list.d/microsoft-azurevpn.list
+        sudo apt update
+    fi
+    sudo apt install -y microsoft-azurevpnclient || echo "Azure VPN Client install failed — see https://learn.microsoft.com/en-us/azure/vpn-gateway/point-to-site-entra-vpn-client-linux"
+fi
+
+# ── Microsoft Identity Broker (prerequisite for Intune) ───────
+# Reference: https://learn.microsoft.com/en-us/entra/identity/devices/sso-linux
+if ! dpkg-query -W -f='${Status}' microsoft-identity-broker 2>/dev/null | grep -q "install ok installed"; then
+    echo "Installing Microsoft Identity Broker..."
+    sudo apt install -y microsoft-identity-broker || echo "Identity Broker install failed — see https://learn.microsoft.com/en-us/entra/identity/devices/sso-linux"
+fi
+
+# ── Smart Card / YubiKey support (needed for Identity Broker PRMFA) ──
+# Reference: https://learn.microsoft.com/en-us/entra/identity/devices/sso-linux
+echo "Ensuring Smart Card and YubiKey packages are installed..."
+sudo apt install -y pcscd opensc yubikey-manager libnss3-tools
+
+# Configure NSS database for the current user (required for Edge/broker to see smart card certs)
+if [ ! -d "$HOME/.pki/nssdb" ] || ! modutil -dbdir sql:"$HOME/.pki/nssdb" -list 2>/dev/null | grep -q "SC Module"; then
+    echo "Configuring NSS database for smart card..."
+    mkdir -p "$HOME/.pki/nssdb"
+    chmod 700 "$HOME/.pki"
+    chmod 700 "$HOME/.pki/nssdb"
+    modutil -force -create -dbdir sql:"$HOME/.pki/nssdb"
+    modutil -force -dbdir sql:"$HOME/.pki/nssdb" -add 'SC Module' -libfile /usr/lib/x86_64-linux-gnu/pkcs11/opensc-pkcs11.so
 fi
 
 # ── Microsoft Intune ───────────────────────────────────────────
-if ! dpkg -l intune-portal &>/dev/null; then
+# Reference: https://learn.microsoft.com/en-us/intune/user-help/company-portal/intune-app-linux
+if ! dpkg-query -W -f='${Status}' intune-portal 2>/dev/null | grep -q "install ok installed"; then
     echo "Installing Microsoft Intune..."
-    sudo apt install -y intune-portal || echo "Intune not in repos — download .deb from https://aka.ms/intune-linux"
-fi
-
-# ── Microsoft Identity Broker ─────────────────────────────────
-if ! dpkg -l microsoft-identity-broker &>/dev/null; then
-    echo "Installing Microsoft Identity Broker..."
-    sudo apt install -y microsoft-identity-broker || echo "Identity Broker not in repos — install via Intune or download .deb"
+    sudo apt install -y intune-portal || echo "Intune install failed — see https://learn.microsoft.com/en-us/intune/user-help/company-portal/intune-app-linux"
 fi
 
 # ── GNOME Extension Manager ────────────────────────────────────
