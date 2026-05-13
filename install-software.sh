@@ -74,7 +74,9 @@ fi
 # ── Aspire CLI ─────────────────────────────────────────────────
 if ! command -v aspire &>/dev/null; then
     echo "Installing Aspire CLI..."
-    curl -fsSL https://aka.ms/install-aspire-cli.sh | bash
+    # Ensure dotnet is in PATH (just installed above)
+    export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH"
+    curl -fsSL https://aka.ms/install-aspire-cli.sh | bash || echo "Aspire CLI install failed — install manually later with: curl -fsSL https://aka.ms/install-aspire-cli.sh | bash"
 fi
 
 # ── Microsoft Edge ─────────────────────────────────────────────
