@@ -14,7 +14,7 @@ if ! command -v stow &>/dev/null; then
 fi
 
 # ── Stow packages (symlink configs into $HOME) ─────────────────
-PACKAGES=(git zsh vscode nuget edge azure-vpn intune pwa)
+PACKAGES=(zsh vscode nuget edge azure-vpn intune pwa)
 
 for pkg in "${PACKAGES[@]}"; do
     if [ -d "$pkg" ]; then
