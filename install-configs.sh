@@ -16,12 +16,33 @@ fi
 # ── Stow packages (symlink configs into $HOME) ─────────────────
 PACKAGES=(git zsh vscode nuget edge azure-vpn intune pwa)
 
+BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
+
 for pkg in "${PACKAGES[@]}"; do
     if [ -d "$pkg" ]; then
+        # Find conflicts: real files that would block stow
+        conflicts=$(stow --no --verbose "$pkg" --target="$HOME" 2>&1 | grep "existing target" | sed 's/.*: //' || true)
+        if [ -n "$conflicts" ]; then
+            echo "  Backing up conflicts for: $pkg"
+            mkdir -p "$BACKUP_DIR"
+            while IFS= read -r file; do
+                target="$HOME/$file"
+                if [ -e "$target" ] && [ ! -L "$target" ]; then
+                    mkdir -p "$BACKUP_DIR/$(dirname "$file")"
+                    mv "$target" "$BACKUP_DIR/$file"
+                    echo "    Moved: $target → $BACKUP_DIR/$file"
+                fi
+            done <<< "$conflicts"
+        fi
         echo "  Stowing: $pkg"
         stow --restow --target="$HOME" "$pkg"
     fi
 done
+
+if [ -d "$BACKUP_DIR" ]; then
+    echo ""
+    echo "  ⚠ Conflicting files backed up to: $BACKUP_DIR"
+fi
 
 # ── dconf (GNOME settings) ────────────────────────────────────
 # dconf can't be stowed (it's a binary database), so we load it directly
