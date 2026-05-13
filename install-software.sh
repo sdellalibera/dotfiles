@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# install-software.sh - Install all required software on a fresh Ubuntu machine
+set -euo pipefail
+
+echo "=== Installing developer tools and applications ==="
+
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Essential tools
+sudo apt install -y \
+    git \
+    curl \
+    wget \
+    stow \
+    zsh \
+    vim \
+    build-essential \
+    ca-certificates \
+    apt-transport-https \
+    gnupg \
+    lsb-release \
+    unzip \
+    jq \
+    htop \
+    neofetch
+
+# ── Oh My Zsh ──────────────────────────────────────────────────
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    echo "Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
+
+# Zsh plugins
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+[ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
+    git clone https://github.com/zsh-autosuggestions/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+[ -d "$ZSH_CUSTOM/plugins/zsh-completions" ] || \
+    git clone https://github.com/zsh-users/zsh-completions "$ZSH_CUSTOM/plugins/zsh-completions"
+
+# Set zsh as default shell
+if [ "$SHELL" != "$(which zsh)" ]; then
+    chsh -s "$(which zsh)"
+fi
+
+# ── .NET SDK ───────────────────────────────────────────────────
+if ! command -v dotnet &>/dev/null; then
+    echo "Installing .NET SDK..."
+    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
+    chmod +x /tmp/dotnet-install.sh
+    /tmp/dotnet-install.sh --channel LTS
+    export PATH="$HOME/.dotnet:$PATH"
+fi
+
+# ── Aspire CLI ─────────────────────────────────────────────────
+if ! command -v aspire &>/dev/null; then
+    echo "Installing Aspire CLI..."
+    curl -fsSL https://aka.ms/install-aspire-cli.sh | bash
+fi
+
+# ── Microsoft Edge ─────────────────────────────────────────────
+if ! command -v microsoft-edge &>/dev/null; then
+    echo "Installing Microsoft Edge..."
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft-edge.gpg > /dev/null
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | \
+        sudo tee /etc/apt/sources.list.d/microsoft-edge.list
+    sudo apt update && sudo apt install -y microsoft-edge-stable
+fi
+
+# ── Visual Studio Code ─────────────────────────────────────────
+if ! command -v code &>/dev/null; then
+    echo "Installing VS Code..."
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/vscode.gpg > /dev/null
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/vscode.gpg] https://packages.microsoft.com/repos/code stable main" | \
+        sudo tee /etc/apt/sources.list.d/vscode.list
+    sudo apt update && sudo apt install -y code
+fi
+
+# ── Azure VPN Client ──────────────────────────────────────────
+if ! command -v microsoft-azurevpnclient &>/dev/null; then
+    echo "Installing Azure VPN Client..."
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | \
+        sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+    sudo apt update && sudo apt install -y microsoft-azurevpnclient
+fi
+
+# ── Microsoft Intune ───────────────────────────────────────────
+if ! command -v microsoft-intune &>/dev/null; then
+    echo "Installing Microsoft Intune (if available)..."
+    sudo apt install -y intune-portal 2>/dev/null || echo "Intune package not available in current repos, skipping."
+fi
+
+# ── Fonts ──────────────────────────────────────────────────────
+if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
+    echo "Installing JetBrainsMono Nerd Font..."
+    FONT_DIR="$HOME/.local/share/fonts"
+    mkdir -p "$FONT_DIR"
+    curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.tar.xz -o /tmp/JetBrainsMono.tar.xz
+    tar -xf /tmp/JetBrainsMono.tar.xz -C "$FONT_DIR"
+    fc-cache -fv
+    rm /tmp/JetBrainsMono.tar.xz
+fi
+
+# ── VS Code Extensions ────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/vscode/extensions.txt" ]; then
+    echo "Installing VS Code extensions..."
+    while IFS= read -r ext; do
+        code --install-extension "$ext" --force 2>/dev/null || true
+    done < "$SCRIPT_DIR/vscode/extensions.txt"
+fi
+
+echo ""
+echo "=== Software installation complete! ==="
+echo "Run ./install-configs.sh to apply dotfile configurations."
+echo "You may need to log out and back in for zsh to take effect."

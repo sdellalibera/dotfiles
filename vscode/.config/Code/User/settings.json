@@ -1,0 +1,68 @@
+{
+    "problems.defaultViewMode": "tree",
+    "github.copilot.chat.problemsScopes": "workspace",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "github.copilot.enable": {
+        "*": false,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false
+    },
+    "remote.autoForwardPortsSource": "hybrid",
+    "chat.useAgentSkills": true,
+    "editor.fontLigatures": false,
+    "editor.fontFamily": "JetBrainsMono Nerd Font",
+    "explorer.confirmDelete": false,
+    "terminal.integrated.cwd": "${fileDirname}",
+    "terminal.integrated.automationProfile.linux": {
+        
+    },
+    "chat.hookFilesLocations": {
+        ".github/hooks": true,
+        ".claude/settings.local.json": true,
+        ".claude/settings.json": true,
+        "~/.claude/settings.json": true,
+        "~/.agents/hooks": true
+    },
+    "git.enableSmartCommit": true,
+    "problems.defaultViewMode": "tree",
+    "search.exclude": {
+        "**/.vscode/extensions/**": true
+    },
+    "github.copilot.chat.problems.exclude": [
+        "**/.vscode/extensions/**"
+    ],
+    "git.confirmSync": false,
+    "terminal.external.windowsExec": "",
+    "terminal.integrated.automationProfile.osx": {},
+    "git.autofetch": true,
+    "application.shellEnvironmentResolutionTimeout": 1,
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "bash": {
+            "path": "/bin/bash",
+            "icon": "terminal-bash"
+        },
+        "zsh": {
+            "path": "/usr/bin/zsh"
+        },
+        "fish": {
+            "path": "fish"
+        },
+        "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+        },
+        "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+        }
+    },
+    "explorer.confirmDragAndDrop": false,
+    "terminal.integrated.tabs.enabled": false,
+    "workbench.colorTheme": "Dark+ Pure Black (OLED)",
+    "explorer.confirmPasteNative": false,
+    "chat.viewSessions.orientation": "stacked",
+    "@azure.argTenant": "",
+    "aspire.aspireCliExecutablePath": "/home/simone/.aspire/bin/aspire"
+}

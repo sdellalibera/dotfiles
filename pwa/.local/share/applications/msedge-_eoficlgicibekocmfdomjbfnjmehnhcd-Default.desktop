@@ -1,0 +1,24 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Outlook (PWA)
+MimeType=x-scheme-handler/mailto;x-scheme-handler/chromium;
+Exec=/opt/microsoft/msedge/microsoft-edge --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-url=https://outlook.cloud.microsoft/mail/ %U
+Icon=msedge-eoficlgicibekocmfdomjbfnjmehnhcd-Default
+NoDisplay=true
+StartupWMClass=crx__eoficlgicibekocmfdomjbfnjmehnhcd
+Actions=New-event;New-message;Open-calendar
+
+[Desktop Action New-event]
+Name=New event
+Exec=/opt/microsoft/msedge/microsoft-edge --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-url=https://outlook.cloud.microsoft/mail/ --app-launch-url-for-shortcuts-menu-item=https://outlook.cloud.microsoft/calendar/deeplink/compose
+
+[Desktop Action New-message]
+Name=New message
+Exec=/opt/microsoft/msedge/microsoft-edge --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-url=https://outlook.cloud.microsoft/mail/ --app-launch-url-for-shortcuts-menu-item=https://outlook.cloud.microsoft/mail/deeplink/compose
+
+[Desktop Action Open-calendar]
+Name=Open calendar
+Exec=/opt/microsoft/msedge/microsoft-edge --profile-directory=Default --app-id=eoficlgicibekocmfdomjbfnjmehnhcd --app-url=https://outlook.cloud.microsoft/mail/ --app-launch-url-for-shortcuts-menu-item=https://outlook.cloud.microsoft/calendar

@@ -1,0 +1,19 @@
+# Logs and caches
+*.log
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor backups
+*~
+*.swp
+*.swo
+
+# Don't track Edge session data (only bookmarks)
+edge/.config/microsoft-edge/Default/Preferences
+edge/.config/microsoft-edge/Default/Login Data
+edge/.config/microsoft-edge/Default/Web Data
+edge/.config/microsoft-edge/Default/History
+edge/.config/microsoft-edge/Default/Cookies

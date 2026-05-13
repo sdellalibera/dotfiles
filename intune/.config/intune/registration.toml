@@ -1,0 +1,6 @@
+account_hint = "8a807e8c-8483-46b8-ac58-a7dc3cf7ca54"
+device_hint = "f0b4524c-eca1-4e03-aa6c-f156219ea795"
+aad_device_hint = "44816d3c-f07f-499b-97b8-a880f4d99ae9"
+needs_patching = "false"
+authority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
+tenant_hint = "72f988bf-86f1-41af-91ab-2d7cd011db47"
