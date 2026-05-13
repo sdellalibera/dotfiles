@@ -38,6 +38,10 @@ for size in 128x128 256x256 32x32 48x48; do
 done
 echo "  ✓ pwa icons"
 
+# GNOME Extensions
+gnome-extensions list > "$DOTFILES_DIR/gnome-extensions/extensions.txt" 2>/dev/null && echo "  ✓ gnome extensions list"
+gnome-extensions list --enabled > "$DOTFILES_DIR/gnome-extensions/extensions-enabled.txt" 2>/dev/null && echo "  ✓ gnome extensions enabled"
+
 # dconf
 dconf dump / > "$DOTFILES_DIR/dconf/dconf-dump.ini" 2>/dev/null && echo "  ✓ dconf"
 

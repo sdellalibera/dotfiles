@@ -93,6 +93,38 @@ if ! command -v microsoft-intune &>/dev/null; then
     sudo apt install -y intune-portal 2>/dev/null || echo "Intune package not available in current repos, skipping."
 fi
 
+# ── GNOME Extension Manager ────────────────────────────────────
+if ! command -v extension-manager &>/dev/null; then
+    echo "Installing GNOME Extension Manager..."
+    sudo apt install -y gnome-shell-extension-manager
+fi
+
+# ── GNOME Extensions (via CLI) ─────────────────────────────────
+SCRIPT_DIR_EARLY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR_EARLY/gnome-extensions/extensions.txt" ]; then
+    echo "Installing GNOME Shell extensions..."
+    # Install pipx and gnome-extensions-cli for easy installs
+    sudo apt install -y pipx 2>/dev/null || true
+    pipx ensurepath
+    pipx install gnome-extensions-cli 2>/dev/null || pip install --user gnome-extensions-cli 2>/dev/null || true
+
+    while IFS= read -r ext; do
+        # Skip system/ubuntu extensions (they come preinstalled)
+        case "$ext" in
+            ding@*|snapd-*|ubuntu-*|web-search-provider@*) continue ;;
+        esac
+        echo "  Installing extension: $ext"
+        gext install "$ext" 2>/dev/null || true
+    done < "$SCRIPT_DIR_EARLY/gnome-extensions/extensions.txt"
+
+    # Enable the enabled ones
+    if [ -f "$SCRIPT_DIR_EARLY/gnome-extensions/extensions-enabled.txt" ]; then
+        while IFS= read -r ext; do
+            gnome-extensions enable "$ext" 2>/dev/null || true
+        done < "$SCRIPT_DIR_EARLY/gnome-extensions/extensions-enabled.txt"
+    fi
+fi
+
 # ── Fonts ──────────────────────────────────────────────────────
 if ! fc-list | grep -qi "JetBrainsMono Nerd"; then
     echo "Installing JetBrainsMono Nerd Font..."
