@@ -24,13 +24,23 @@ sudo apt install -y \
     jq \
     htop
 
+# ── GitHub CLI auth (needed for private repo clones) ───────────
+if command -v gh &>/dev/null && ! gh auth status &>/dev/null; then
+    echo "GitHub CLI not authenticated. Running gh auth login..."
+    gh auth login
+fi
+# Configure git to use gh as credential helper (avoids PAT prompts)
+if command -v gh &>/dev/null; then
+    gh auth setup-git
+fi
+
 # ── Oh My Zsh ──────────────────────────────────────────────────
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     echo "Installing Oh My Zsh..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-# Zsh plugins
+# Zsh plugins (public repos, no auth needed)
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 [ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || \
     git clone https://github.com/zsh-autosuggestions/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
