@@ -106,16 +106,24 @@ fi
 # ── Azure VPN Client ──────────────────────────────────────────
 if ! command -v microsoft-azurevpnclient &>/dev/null; then
     echo "Installing Azure VPN Client..."
-    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | \
+    # Add Microsoft prod repo for Ubuntu
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft-prod.gpg > /dev/null
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | \
         sudo tee /etc/apt/sources.list.d/microsoft-prod.list
-    sudo apt update && sudo apt install -y microsoft-azurevpnclient
+    sudo apt update
+    sudo apt install -y microsoft-azurevpnclient || echo "Azure VPN Client install failed — download .deb from https://aka.ms/azurevpnclientlinuxdownload"
 fi
 
 # ── Microsoft Intune ───────────────────────────────────────────
-if ! command -v microsoft-intune &>/dev/null; then
-    echo "Installing Microsoft Intune (if available)..."
-    sudo apt install -y intune-portal 2>/dev/null || echo "Intune package not available in current repos, skipping."
+if ! dpkg -l intune-portal &>/dev/null; then
+    echo "Installing Microsoft Intune..."
+    sudo apt install -y intune-portal || echo "Intune not in repos — download .deb from https://aka.ms/intune-linux"
+fi
+
+# ── Microsoft Identity Broker ─────────────────────────────────
+if ! dpkg -l microsoft-identity-broker &>/dev/null; then
+    echo "Installing Microsoft Identity Broker..."
+    sudo apt install -y microsoft-identity-broker || echo "Identity Broker not in repos — install via Intune or download .deb"
 fi
 
 # ── GNOME Extension Manager ────────────────────────────────────
