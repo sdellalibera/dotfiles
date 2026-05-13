@@ -79,6 +79,12 @@ if ! command -v aspire &>/dev/null; then
     curl -fsSL https://aka.ms/install-aspire-cli.sh | bash || echo "Aspire CLI install failed — install manually later with: curl -fsSL https://aka.ms/install-aspire-cli.sh | bash"
 fi
 
+# ── GitHub Copilot CLI ─────────────────────────────────────────
+if ! command -v github-copilot-cli &>/dev/null; then
+    echo "Installing GitHub Copilot CLI..."
+    gh extension install github/gh-copilot 2>/dev/null || true
+fi
+
 # ── Microsoft Edge ─────────────────────────────────────────────
 if ! command -v microsoft-edge &>/dev/null; then
     echo "Installing Microsoft Edge..."
