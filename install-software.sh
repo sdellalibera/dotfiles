@@ -22,8 +22,7 @@ sudo apt install -y \
     lsb-release \
     unzip \
     jq \
-    htop \
-    neofetch
+    htop
 
 # ── Oh My Zsh ──────────────────────────────────────────────────
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
