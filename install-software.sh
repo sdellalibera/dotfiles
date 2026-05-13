@@ -62,13 +62,12 @@ if [ "$SHELL" != "$(which zsh)" ]; then
     chsh -s "$(which zsh)"
 fi
 
-# ── .NET SDK ───────────────────────────────────────────────────
-if ! command -v dotnet &>/dev/null; then
-    echo "Installing .NET SDK..."
-    wget https://dot.net/v1/dotnet-install.sh -O /tmp/dotnet-install.sh
-    chmod +x /tmp/dotnet-install.sh
-    /tmp/dotnet-install.sh --channel LTS
-    export PATH="$HOME/.dotnet:$PATH"
+# ── .NET 10 SDK ────────────────────────────────────────────────
+# Reference: https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu-install?tabs=dotnet10&pivots=os-linux-ubuntu-2604
+if ! dotnet --list-sdks 2>/dev/null | grep -q "^10\."; then
+    echo "Installing .NET 10.0 SDK via apt..."
+    sudo apt-get update && sudo apt-get install -y dotnet-sdk-10.0
+    echo ".NET SDK installed: $(dotnet --version)"
 fi
 
 # ── Aspire CLI ─────────────────────────────────────────────────
