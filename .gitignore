@@ -11,22 +11,5 @@ Thumbs.db
 *.swp
 *.swo
 
-# VS Code - only track settings and extensions list
-vscode/.config/Code/*
-!vscode/.config/Code/User/
-vscode/.config/Code/User/*
-!vscode/.config/Code/User/settings.json
-!vscode/.config/Code/User/keybindings.json
-
-# Edge - only track bookmarks
-edge/.config/microsoft-edge/*/Preferences
-edge/.config/microsoft-edge/*/Login Data*
-edge/.config/microsoft-edge/*/Web Data*
-edge/.config/microsoft-edge/*/History*
-edge/.config/microsoft-edge/*/Cookies*
-edge/.config/microsoft-edge/*/Sessions/
-edge/.config/microsoft-edge/*/GPUCache/
-edge/.config/microsoft-edge/*/Cache/
-edge/.config/microsoft-edge/*/Service Worker/
-edge/.config/microsoft-edge/Local State
-edge/.config/microsoft-edge/Edge Entity Extraction/
+# Local overrides (not tracked)
+git/gitconfig.local.symlink

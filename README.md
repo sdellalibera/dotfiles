@@ -1,76 +1,65 @@
 # Dotfiles
 
-These are my personal dotfiles. They are highly configurable depending on your necessities — pick and choose what you need.
-
-Managed with [GNU Stow](https://www.gnu.org/software/stow/).
+Personal dotfiles for Ubuntu. Topic-based organization with symlinks.
 
 ## Quick Start
 
 ```bash
 git clone <your-repo-url> ~/repos/dotfiles
 cd ~/repos/dotfiles
-./install-software.sh   # install all software
-./install-configs.sh    # symlink configs into $HOME
+./setup.sh
 ```
 
-## install-software.sh
+## How It Works
 
-Installs the following on a fresh Ubuntu machine:
+### Structure
 
-- System update & upgrade
-- Essential tools: git, gh, curl, wget, stow, zsh, vim, build-essential, unzip, jq, htop
-- GitHub CLI authentication & git credential helper
-- Oh My Zsh + plugins:
-  - zsh-autosuggestions
-  - zsh-syntax-highlighting
-  - zsh-completions
-- Zsh set as default shell
-- .NET 10 SDK
-- Aspire CLI
-- Podman & Podman Desktop (via Flatpak)
-- GitHub Copilot CLI (gh extension)
-- Microsoft Edge
-- Visual Studio Code
-- Microsoft packages repository (PMC)
-- Azure VPN Client
-- Microsoft Identity Broker
-- Smart Card / YubiKey support (pcscd, opensc, yubikey-manager)
-- NSS database configuration for smart card certs
-- Microsoft Intune
-- GNOME Extension Manager + extensions from `gnome-extensions/extensions.txt`
-- JetBrainsMono Nerd Font
-- VS Code extensions from `vscode/extensions.txt`
+Each top-level folder is a **topic** (git, zsh, vscode, dotnet, etc.):
 
-## install-configs.sh
+- `*.symlink` files → symlinked to `$HOME` as dotfiles by `script/bootstrap`
+- `install.sh` → per-topic installer run by `script/install`
 
-Symlinks configuration files into `$HOME` via GNU Stow and applies settings:
+### Entry Points
 
-- Stows packages (symlinks into $HOME):
-  - `zsh` — `.zshrc` (Oh My Zsh config, aliases, PATH, plugins)
-  - `git` — `.gitconfig`
-  - `vscode` — VS Code `settings.json`
-  - `nuget` — `NuGet.Config`
-  - `dotnet` — `global.json`
-  - `edge` — Edge bookmarks
-  - `azure-vpn` — VPN connection profiles
-  - `intune` — Device registration & flights config
-  - `pwa` — PWA apps (.desktop files + icons)
-- Loads dconf/GNOME settings from `dconf/dconf-dump.ini`
-- Installs VS Code extensions from `vscode/extensions.txt`
+| Command | What it does |
+|---------|-------------|
+| `./setup.sh` | Full setup: system packages + symlinks + topic installers |
+| `./setup.sh links` | Only create symlinks |
+| `./setup.sh install` | Only run topic installers |
 
-## How Stow Works
+### Symlink Convention
 
-Each top-level folder is a "package". Stow creates symlinks from `$HOME` pointing into this repo:
+Any file named `something.symlink` in a topic folder gets linked as `~/.something`:
 
 ```
-dotfiles/zsh/.zshrc  →  ~/.zshrc
-dotfiles/vscode/.config/Code/User/settings.json  →  ~/.config/Code/User/settings.json
+dotfiles/zsh/zshrc.symlink      →  ~/.zshrc
+dotfiles/git/gitconfig.symlink  →  ~/.gitconfig
 ```
 
-Edits in `$HOME` automatically update the repo (they're the same file).
+For nested configs (VS Code, Edge, NuGet, etc.), each topic's `install.sh` creates the symlinks at the correct paths.
 
-## Selective Installation
+**Because these are symlinks, editing `~/.zshrc` directly edits `dotfiles/zsh/zshrc.symlink` — they are the same file.**
 
-```bash
-stow --no-folding --target="$HOME" git zsh vscode
-```
+## Topics
+
+| Topic | What's included |
+|-------|----------------|
+| `zsh/` | Oh My Zsh, plugins, `.zshrc` |
+| `git/` | `.gitconfig` |
+| `vscode/` | VS Code, settings, extensions |
+| `dotnet/` | .NET 10 SDK, Aspire CLI, global.json |
+| `nuget/` | NuGet.Config |
+| `edge/` | Microsoft Edge, bookmarks |
+| `azure-vpn/` | Azure VPN Client, connection profiles |
+| `intune/` | Identity Broker, Smart Card, Intune |
+| `podman/` | Podman, Podman Desktop |
+| `pwa/` | PWA .desktop files and icons |
+| `gnome-extensions/` | GNOME extensions |
+| `dconf/` | GNOME/dconf settings |
+
+## Adding a New Topic
+
+1. Create a folder: `mkdir mytopic`
+2. Add config files with `.symlink` suffix for home-level dotfiles
+3. Add an `install.sh` for any software installation or nested symlinks
+4. Run `./setup.sh links` and `./setup.sh install`

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# Run all topic installers (install.sh files in each topic folder).
+
+set -e
+
+cd "$(dirname "$0")"/..
+
+echo ''
+echo '  Running topic installers...'
+echo ''
+
+# Find all install.sh scripts in topic directories and run them
+find . -mindepth 2 -maxdepth 2 -name install.sh -not -path './script/*' | sort | while read installer; do
+  echo "  → Running $installer"
+  sh -c "${installer}"
+done
+
+echo ''
+echo '  All topic installers complete!'

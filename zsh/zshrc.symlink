@@ -32,7 +32,7 @@ source $ZSH/oh-my-zsh.sh
 # ── User Configuration ──────────────────────────────────────────
 
 # Preferred editor
-export EDITOR='vim'
+export EDITOR='nano'
 
 # Aliases
 alias ll='ls -lah --color=auto'
