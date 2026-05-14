@@ -60,7 +60,6 @@
     },
     "explorer.confirmDragAndDrop": false,
     "terminal.integrated.tabs.enabled": false,
-    "workbench.colorTheme": "Dark+ Pure Black (OLED)",
     "explorer.confirmPasteNative": false,
     "chat.viewSessions.orientation": "stacked",
     "@azure.argTenant": "",

@@ -14,16 +14,16 @@ if ! command -v stow &>/dev/null; then
 fi
 
 # ── Stow packages (symlink configs into $HOME) ─────────────────
-PACKAGES=(zsh vscode nuget edge azure-vpn intune pwa)
+PACKAGES=(zsh git vscode nuget dotnet edge azure-vpn intune pwa)
 
 for pkg in "${PACKAGES[@]}"; do
     if [ -d "$pkg" ]; then
         echo "  Stowing: $pkg"
         # --adopt: if a target file already exists, move it INTO the repo
         # then restow to create the symlink. This handles existing files.
-        stow --adopt --target="$HOME" "$pkg" 2>/dev/null || true
-        # Restow to ensure correct symlinks
-        stow --restow --target="$HOME" "$pkg"
+        stow --adopt --no-folding --target="$HOME" "$pkg" 2>/dev/null || true
+        # Restow to ensure correct symlinks (--no-folding prevents symlinking entire dirs)
+        stow --restow --no-folding --target="$HOME" "$pkg"
     fi
 done
 

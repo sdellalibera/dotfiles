@@ -78,6 +78,20 @@ if ! command -v aspire &>/dev/null; then
     curl -sSL https://aspire.dev/install.sh | bash || echo "Aspire CLI install failed — install manually later with: curl -sSL https://aspire.dev/install.sh | bash"
 fi
 
+# ── Podman & Podman Desktop ────────────────────────────────────
+# Reference: https://podman-desktop.io/docs/installation/linux-install
+if ! command -v podman &>/dev/null; then
+    echo "Installing Podman..."
+    sudo apt install -y podman
+fi
+
+if ! flatpak list --user 2>/dev/null | grep -q io.podman_desktop.PodmanDesktop; then
+    echo "Installing Podman Desktop via Flatpak..."
+    sudo apt install -y flatpak
+    flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+    flatpak install --user -y flathub io.podman_desktop.PodmanDesktop
+fi
+
 # ── GitHub Copilot CLI ─────────────────────────────────────────
 if ! command -v github-copilot-cli &>/dev/null; then
     echo "Installing GitHub Copilot CLI..."

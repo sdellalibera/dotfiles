@@ -71,3 +71,6 @@ export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 
 # Added by get-aspire-cli.sh
 export PATH="$HOME/.aspire/bin:$PATH"
+
+# Use Podman as the container runtime for .NET Aspire projects
+export ASPIRE_CONTAINER_RUNTIME=podman
